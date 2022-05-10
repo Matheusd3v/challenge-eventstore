@@ -38,7 +38,7 @@ public class QueryIterator  implements EventIterator {
     @Override
     public Event current() {
         if (count == 0 || !lastMoveNext ) {
-            throw new IllegalStateException("moveNext was never called or its last result was false");
+            throw new IllegalStateException("MoveNext was never called or its last result was false");
         }
 
         return currentEvent;
@@ -47,7 +47,7 @@ public class QueryIterator  implements EventIterator {
     @Override
     public void remove() {
         if (count == 0 || !lastMoveNext ) {
-            throw new IllegalStateException("moveNext was never called or its last result was false");
+            throw new IllegalStateException("MoveNext was never called or its last result was false");
         }
 
         list.removeIf(x -> x == currentEvent);
