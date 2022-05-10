@@ -2,7 +2,7 @@
 
 ## Collections
 
-I choose this collections in class EventStoreController because they are thread-safe collections. And both are recomended in "Java: How to program" in cases of concurrence. Despite these choices, I was unable to implement threads and performance improvements.
+I choose this collections in class EventStoreController because they are thread-safe collections. And both are recomended in "Java: How to program" in cases of concurrence. I preferred to apply threads in cases where many iterations are necessary, such as retrieving some event or filter or also removing by the iterator. I chose 100 milliseconds to wait for the thread as I thought it was a good amount of time, but I could increase it knowing the exact average of requests from the main function. Or Decrease.
 
 ## Tests
 

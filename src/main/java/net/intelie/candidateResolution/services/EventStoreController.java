@@ -1,12 +1,13 @@
 package net.intelie.candidateResolution.services;
 
+import net.intelie.candidateResolution.services.runnableClasses.FilterListRunnable;
+import net.intelie.candidateResolution.services.runnableClasses.InsertNewEvent;
 import net.intelie.challenges.Event;
 import net.intelie.challenges.EventIterator;
 import net.intelie.challenges.EventStore;
 
 import java.util.concurrent.*;
 
-import static java.util.stream.Collectors.toCollection;
 
 public class EventStoreController implements EventStore {
     private CopyOnWriteArraySet<String> existingTypes;
@@ -19,20 +20,19 @@ public class EventStoreController implements EventStore {
 
     @Override
     public void insert(Event event) {
-        if (!existingTypes.contains(event.type())) {
-            existingTypes.add(event.type());
 
-            LinkedBlockingQueue<Event> newList = new LinkedBlockingQueue<>();
+        InsertNewEvent newInsert = new InsertNewEvent(this.existingTypes, this.eventStore, event);
 
-            newList.add(event);
-            eventStore.put(event.type(), newList);
+        ExecutorService threadExecutor = Executors.newSingleThreadExecutor();
 
-            return;
+        threadExecutor.execute(newInsert);
+
+        threadExecutor.shutdown();
+        try {
+          threadExecutor.awaitTermination(100, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
-
-        LinkedBlockingQueue<Event> listToAdd = eventStore.get(event.type());
-
-        listToAdd.add(event);
     }
 
     @Override
@@ -44,17 +44,22 @@ public class EventStoreController implements EventStore {
     public EventIterator query(String type, long startTime, long endTime) {
         LinkedBlockingQueue<Event> typeList = eventStore.get(type);
 
-        LinkedBlockingQueue<Event> queryList =  filterList(typeList, startTime, endTime);
+        LinkedBlockingQueue<Event> queryList = new LinkedBlockingQueue<>();
+
+        ExecutorService threadExecutor = Executors.newSingleThreadExecutor();
+
+        threadExecutor.execute(new FilterListRunnable(typeList, queryList, startTime, endTime));
+
+        threadExecutor.shutdown();
+        try {
+           threadExecutor.awaitTermination(250, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         return new QueryIterator(queryList, typeList);
     }
 
-    private LinkedBlockingQueue<Event> filterList(LinkedBlockingQueue<Event> eventList, long startTime, long endTime) {
-
-        return eventList.stream()
-                .filter(event -> event.timestamp() >= startTime && event.timestamp() < endTime)
-                .collect(toCollection(LinkedBlockingQueue::new));
-    }
 
     public ConcurrentHashMap<String, LinkedBlockingQueue<Event>> getEventStore() {
         return eventStore;

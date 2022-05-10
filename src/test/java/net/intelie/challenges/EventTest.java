@@ -135,5 +135,38 @@ public class EventTest {
         assertTrue(actualMessage.contains(expectedMessage));
     }
 
+    @Test
+    public void insert1000EventsInStore () {
+        Random generate = new Random();
+
+        for (int i = 0; i < 500; i++) {
+            controller.insert(new Event("add_type", generate.nextInt(900) ));
+            controller.insert(new Event("test_type", generate.nextInt(900) ));
+        }
+
+        int typeALength = controller.getEventStore().get("add_type").size();
+        int typeBLength = controller.getEventStore().get("test_type").size();
+
+        assertEquals(typeALength, 500);
+        assertEquals(typeBLength, 500);
+    }
+
+
+    @Test
+    public void insert10000EventsInStore () {
+        Random generate = new Random();
+
+        for (int i = 0; i < 5000; i++) {
+            controller.insert(new Event("add_type", generate.nextInt(900) ));
+            controller.insert(new Event("test_type", generate.nextInt(900) ));
+        }
+
+        int typeALength = controller.getEventStore().get("add_type").size();
+        int typeBLength = controller.getEventStore().get("test_type").size();
+
+        assertEquals(typeALength, 5000);
+        assertEquals(typeBLength, 5000);
+    }
+
 
 }
